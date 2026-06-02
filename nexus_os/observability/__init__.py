@@ -1,1 +1,1 @@
-"""Observability: Tracing and Squeez log compression."""
+"""Observability - Tracing, Squeez log compression."""

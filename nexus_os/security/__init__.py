@@ -1,1 +1,1 @@
-"""Security: Terminal sanitization and PTY isolation."""
+"""Security layer - Terminal sanitization, PTY isolation, integrity verification."""

@@ -1,1 +1,1 @@
-"""Swarm: Foreman, workers, auction, OpenClaw spawner."""
+"""Swarm pillar - Foreman, worker pool, auction, OpenClaw spawner."""

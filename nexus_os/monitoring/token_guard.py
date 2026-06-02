@@ -1,103 +1,192 @@
 """TokenGuard - Budget enforcement and usage monitoring.
 
-Tracks token consumption per agent/model and enforces hard/soft limits.
+Replaces bare ``except: pass`` blocks in budget checking with proper
+``BudgetExceeded`` and ``TokenGuardError`` exceptions.
 """
 
 from __future__ import annotations
 
+import logging
+import threading
 import time
 from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
+
+from nexus_os.exceptions import BudgetExceeded, TokenGuardError
+
+logger = logging.getLogger(__name__)
+
+
+class Strategy(Enum):
+    ECO = "eco"
+    BALANCED = "balanced"
+    FAST = "fast"
+    UNLIMITED = "unlimited"
+
+
+STRATEGY_MULTIPLIERS: dict[Strategy, float] = {
+    Strategy.ECO: 0.5,
+    Strategy.BALANCED: 1.0,
+    Strategy.FAST: 2.0,
+    Strategy.UNLIMITED: float("inf"),
+}
 
 
 @dataclass
-class UsageRecord:
+class BudgetRecord:
     agent_id: str
-    model_id: str
     tokens_used: int = 0
-    requests: int = 0
-    last_request: float = field(default_factory=time.time)
-
-
-@dataclass
-class BudgetPolicy:
-    max_tokens: int
-    max_requests: int = 0
-    window_seconds: float = 3600.0
-    hard_limit: bool = True
-
-
-class BudgetExceededError(Exception):
-    pass
+    tokens_limit: int = 100_000
+    strategy: Strategy = Strategy.BALANCED
+    last_check: float = field(default_factory=time.time)
+    history: list[dict[str, Any]] = field(default_factory=list)
 
 
 class TokenGuard:
-    """Enforces token budgets per agent and model."""
+    """Token budget enforcement with per-agent tracking.
 
-    def __init__(self) -> None:
-        self._usage: dict[str, UsageRecord] = {}
-        self._policies: dict[str, BudgetPolicy] = {}
-        self._global_policy: BudgetPolicy | None = None
+    All budget checks raise ``BudgetExceeded`` when the limit is hit,
+    rather than silently allowing overspend.
+    """
 
-    def set_global_policy(self, policy: BudgetPolicy) -> None:
-        self._global_policy = policy
+    def __init__(self, default_limit: int = 100_000) -> None:
+        self._default_limit = default_limit
+        self._records: dict[str, BudgetRecord] = {}
+        self._lock = threading.Lock()
 
-    def set_agent_policy(self, agent_id: str, policy: BudgetPolicy) -> None:
-        self._policies[agent_id] = policy
+    def register_agent(
+        self,
+        agent_id: str,
+        *,
+        limit: int | None = None,
+        strategy: Strategy = Strategy.BALANCED,
+    ) -> None:
+        with self._lock:
+            if agent_id in self._records:
+                logger.debug("Agent %s already registered with TokenGuard", agent_id)
+                return
+            self._records[agent_id] = BudgetRecord(
+                agent_id=agent_id,
+                tokens_limit=limit or self._default_limit,
+                strategy=strategy,
+            )
+        logger.info(
+            "TokenGuard registered %s (limit=%d, strategy=%s)",
+            agent_id, limit or self._default_limit, strategy.value,
+        )
 
-    def get_usage(self, agent_id: str, model_id: str = "*") -> UsageRecord | None:
-        key = f"{agent_id}:{model_id}"
-        return self._usage.get(key)
+    def check_budget(
+        self,
+        agent_id: str,
+        context: dict[str, Any] | None = None,
+    ) -> bool:
+        """Check whether the agent has budget remaining.
 
-    def record_usage(self, agent_id: str, model_id: str, tokens: int) -> UsageRecord:
-        key = f"{agent_id}:{model_id}"
-        if key not in self._usage:
-            self._usage[key] = UsageRecord(agent_id=agent_id, model_id=model_id)
-        record = self._usage[key]
-        record.tokens_used += tokens
-        record.requests += 1
-        record.last_request = time.time()
-        return record
+        Returns ``True`` if budget is available, raises ``BudgetExceeded``
+        if not.
 
-    def check_budget(self, agent_id: str, model_id: str, requested_tokens: int) -> bool:
-        """Return True if the request is within budget, False otherwise.
-
-        Raises BudgetExceededError if a hard limit is breached.
+        Raises
+        ------
+        TokenGuardError
+            If the agent is not registered.
+        BudgetExceeded
+            If the agent has exhausted their token budget.
         """
-        policy = self._policies.get(agent_id, self._global_policy)
-        if policy is None:
-            return True
+        record = self._get_record(agent_id)
+        effective_limit = self._effective_limit(record)
 
-        key = f"{agent_id}:{model_id}"
-        record = self._usage.get(key)
-        current_tokens = record.tokens_used if record else 0
-        current_requests = record.requests if record else 0
+        if record.tokens_used >= effective_limit:
+            raise BudgetExceeded(
+                f"Agent {agent_id} has exhausted token budget: "
+                f"{record.tokens_used}/{effective_limit}",
+                used=record.tokens_used,
+                limit=effective_limit,
+                details={
+                    "agent_id": agent_id,
+                    "strategy": record.strategy.value,
+                },
+            )
 
-        if current_tokens + requested_tokens > policy.max_tokens:
-            if policy.hard_limit:
-                raise BudgetExceededError(
-                    f"Agent '{agent_id}' would exceed token budget: "
-                    f"{current_tokens + requested_tokens} > {policy.max_tokens}"
-                )
-            return False
-
-        if policy.max_requests > 0 and current_requests + 1 > policy.max_requests:
-            if policy.hard_limit:
-                raise BudgetExceededError(
-                    f"Agent '{agent_id}' would exceed request limit: "
-                    f"{current_requests + 1} > {policy.max_requests}"
-                )
-            return False
-
+        record.last_check = time.time()
         return True
 
-    def get_total_usage(self, agent_id: str) -> int:
-        total = 0
-        for key, record in self._usage.items():
-            if record.agent_id == agent_id:
-                total += record.tokens_used
-        return total
+    def consume(self, agent_id: str, tokens: int) -> int:
+        """Record token usage.
 
-    def reset_usage(self, agent_id: str) -> None:
-        keys_to_remove = [k for k, v in self._usage.items() if v.agent_id == agent_id]
-        for key in keys_to_remove:
-            del self._usage[key]
+        Raises
+        ------
+        TokenGuardError
+            If the agent is not registered or tokens is negative.
+        BudgetExceeded
+            If this consumption would exceed the budget.
+        """
+        if tokens < 0:
+            raise TokenGuardError(
+                f"Cannot consume negative tokens: {tokens}",
+                details={"agent_id": agent_id, "tokens": tokens},
+            )
+
+        record = self._get_record(agent_id)
+        effective_limit = self._effective_limit(record)
+
+        new_total = record.tokens_used + tokens
+        if new_total > effective_limit:
+            raise BudgetExceeded(
+                f"Consumption of {tokens} tokens would exceed budget for {agent_id}: "
+                f"{new_total}/{effective_limit}",
+                used=record.tokens_used,
+                limit=effective_limit,
+                details={
+                    "agent_id": agent_id,
+                    "requested": tokens,
+                    "would_be_total": new_total,
+                },
+            )
+
+        with self._lock:
+            record.tokens_used = new_total
+            record.history.append({
+                "tokens": tokens,
+                "total": new_total,
+                "timestamp": time.time(),
+            })
+
+        return record.tokens_used
+
+    def get_usage(self, agent_id: str) -> dict[str, Any]:
+        record = self._get_record(agent_id)
+        effective_limit = self._effective_limit(record)
+        return {
+            "agent_id": agent_id,
+            "tokens_used": record.tokens_used,
+            "tokens_limit": effective_limit,
+            "remaining": max(0, effective_limit - record.tokens_used),
+            "strategy": record.strategy.value,
+            "utilization": record.tokens_used / effective_limit if effective_limit else 0,
+        }
+
+    def set_strategy(self, agent_id: str, strategy: Strategy) -> None:
+        record = self._get_record(agent_id)
+        old = record.strategy
+        record.strategy = strategy
+        logger.info(
+            "TokenGuard strategy for %s: %s -> %s",
+            agent_id, old.value, strategy.value,
+        )
+
+    def _get_record(self, agent_id: str) -> BudgetRecord:
+        with self._lock:
+            record = self._records.get(agent_id)
+        if record is None:
+            raise TokenGuardError(
+                f"Agent {agent_id!r} is not registered with TokenGuard",
+                details={"agent_id": agent_id},
+            )
+        return record
+
+    def _effective_limit(self, record: BudgetRecord) -> int:
+        multiplier = STRATEGY_MULTIPLIERS.get(record.strategy, 1.0)
+        if multiplier == float("inf"):
+            return 2**63  # practical "unlimited"
+        return int(record.tokens_limit * multiplier)

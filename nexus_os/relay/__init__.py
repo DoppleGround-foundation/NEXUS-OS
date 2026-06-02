@@ -1,1 +1,1 @@
-"""Relay: Transparent model relay proxy."""
+"""Relay - Transparent model relay proxy."""
