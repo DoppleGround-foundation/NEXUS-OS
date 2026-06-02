@@ -1,3 +1,6 @@
+<img width="1280" height="720" alt="8ddbe9cf-228e-4086-bd4a-dd925476e49a (1)" src="https://github.com/user-attachments/assets/f6ac3954-3d5d-4b86-8315-5471c797d8e2" />
+
+
 # NEXUS OS — Governed Agent Operating System
 
 **Local-first, auditable, multi-agent governance for AI systems.**
@@ -270,6 +273,4 @@ nexusctl doctor
 ## License
 
 Internal — R&D Backend Team.
-#   N E X U S - O S  
- #   N E X U S - O S  
- 
+#
