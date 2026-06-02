@@ -104,7 +104,7 @@ Closes the TAMAS tools gap: **240 tools across 12 categories** (vs TAMAS's 211).
 ---
 
 ## GIT HISTORY CLEANUP (2026-05-15)
-- **Confluent key** `7OUV257I7PW3AQ4C` scrubbed from `clean/security-phase-0` history via git-filter-repo
+- **Confluent key** [REDACTED] scrubbed from `clean/security-phase-0` history via git-filter-repo
 - **.env** (with API keys) removed from `clean/security-phase-0` history
 - **AZURE_GROK_API_KEY** never committed (only existed locally) — quarantined to `.brv/azure_archive/`
 - Full backup: `.brv/git_history_backup/nexus_full_2026-05-15.bundle` (312 MB)
