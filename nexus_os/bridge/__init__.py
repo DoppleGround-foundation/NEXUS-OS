@@ -1,1 +1,1 @@
-"""Bridge: JSON-RPC server, SDK, secrets, MCP auth."""
+"""Bridge pillar - JSON-RPC server, SDK, secrets, MCP auth."""

@@ -1,1 +1,1 @@
-"""Engine: Hermes router, executor, skillsmith, tool discipline."""
+"""Engine pillar - Hermes router, executor, skillsmith, tool discipline."""

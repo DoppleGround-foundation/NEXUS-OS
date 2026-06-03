@@ -1,1 +1,1 @@
-"""Governor: KAIJU gates, TrustEngine, compliance, VAP proof chain."""
+"""Governor pillar - KAIJU gates, TrustEngine, VAP proof chain, compliance."""

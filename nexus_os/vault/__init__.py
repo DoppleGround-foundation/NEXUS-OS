@@ -1,1 +1,1 @@
-"""Vault: 5-track memory, encryption, trust persistence."""
+"""Vault pillar - 5-track memory, durable records, encryption policy."""

@@ -1,1 +1,1 @@
-"""Monitoring: TokenGuard, counters, strategies."""
+"""Monitoring pillar - TokenGuard, counters, strategies."""

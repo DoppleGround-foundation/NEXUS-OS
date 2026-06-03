@@ -1,1 +1,1 @@
-"""DB: Thread-safe database manager (SQLite/PostgreSQL)."""
+"""Database layer - Thread-safe database manager (SQLite/PostgreSQL)."""

@@ -1,1 +1,3 @@
-"""Nexus OS - Governed Agent Operating System."""
+"""Nexus OS - Governed, local-first agent operating system."""
+
+__version__ = "4.0.0"
