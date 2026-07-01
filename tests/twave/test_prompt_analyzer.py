@@ -94,9 +94,7 @@ class TestPromptAnalyzer:
         assert "ai" in result.topics
 
     def test_topic_extraction_multiple(self):
-        result = self.analyzer.analyze(
-            "Build a machine learning model that queries a database for security analysis"
-        )
+        result = self.analyzer.analyze("Build a machine learning model that queries a database for security analysis")
         assert len(result.topics) >= 2
 
     def test_result_has_confidence(self):

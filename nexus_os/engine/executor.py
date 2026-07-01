@@ -14,7 +14,6 @@ from typing import Any
 
 from nexus_os.exceptions import (
     BridgeError,
-    CircuitBreakerOpen,
     ExecutionError,
     KAIJUDenied,
     NexusError,
@@ -115,7 +114,10 @@ class BridgeExecutor:
                 last_error = exc
                 logger.warning(
                     "Bridge RPC attempt %d/%d failed for task %s: %s",
-                    attempt, self._max_retries, task_id, exc,
+                    attempt,
+                    self._max_retries,
+                    task_id,
+                    exc,
                 )
                 if attempt == self._max_retries:
                     raise ExecutionError(
@@ -136,14 +138,14 @@ class BridgeExecutor:
         if self._vap is not None:
             try:
                 import hashlib
-                result_hash = hashlib.sha256(
-                    str(rpc_result).encode()
-                ).hexdigest()
+
+                result_hash = hashlib.sha256(str(rpc_result).encode()).hexdigest()
                 self._vap.append(agent_id, action, result_hash)
             except Exception as exc:
                 logger.error(
                     "VAP logging failed for task %s (non-fatal): %s",
-                    task_id, exc,
+                    task_id,
+                    exc,
                 )
 
         return TaskResult(

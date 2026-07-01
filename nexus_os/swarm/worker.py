@@ -131,7 +131,9 @@ class Worker:
 
         logger.debug(
             "Worker %s completed task %s in %.1fms",
-            self.worker_id, assignment.task_id, duration_ms,
+            self.worker_id,
+            assignment.task_id,
+            duration_ms,
         )
         return result
 
@@ -142,10 +144,7 @@ class Worker:
             "status": self._state.status.value,
             "completed": self._state.completed_count,
             "failed": self._state.failed_count,
-            "current_task": (
-                self._state.current_task.task_id
-                if self._state.current_task else None
-            ),
+            "current_task": (self._state.current_task.task_id if self._state.current_task else None),
             "last_heartbeat": self._state.last_heartbeat,
         }
 
@@ -160,7 +159,9 @@ class Worker:
         self._state.failed_count += 1
         logger.warning(
             "Worker %s failed task %s (total failures: %d)",
-            self.worker_id, assignment.task_id, self._state.failed_count,
+            self.worker_id,
+            assignment.task_id,
+            self._state.failed_count,
         )
 
 
@@ -195,9 +196,7 @@ class WorkerPool:
             details={
                 "task_id": task.task_id,
                 "pool_size": len(self._workers),
-                "statuses": {
-                    wid: w.status.value for wid, w in self._workers.items()
-                },
+                "statuses": {wid: w.status.value for wid, w in self._workers.items()},
             },
         )
 

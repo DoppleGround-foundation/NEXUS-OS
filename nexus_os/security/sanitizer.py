@@ -114,7 +114,9 @@ class AgentPTY:
 
         logger.debug(
             "PTY opened for agent %s (master=%d, slave=%d)",
-            self.agent_id, self._master_fd, self._slave_fd,
+            self.agent_id,
+            self._master_fd,
+            self._slave_fd,
         )
 
     def read_output(self, max_bytes: int = 4096) -> str:
@@ -187,7 +189,9 @@ class AgentPTY:
                 except OSError as exc:
                     logger.warning(
                         "Error closing PTY fd %d for agent %s: %s",
-                        fd, self.agent_id, exc,
+                        fd,
+                        self.agent_id,
+                        exc,
                     )
                 setattr(self, fd_attr, None)
 
@@ -227,8 +231,7 @@ class VerifiableOutput:
         computed = hashlib.sha256(self.content.encode("utf-8")).hexdigest()
         if computed != self.content_hash:
             raise IntegrityViolation(
-                f"Content integrity check failed: "
-                f"expected {self.content_hash}, got {computed}",
+                f"Content integrity check failed: expected {self.content_hash}, got {computed}",
                 details={
                     "expected_hash": self.content_hash,
                     "computed_hash": computed,

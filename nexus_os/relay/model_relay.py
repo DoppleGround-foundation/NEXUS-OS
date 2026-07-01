@@ -176,7 +176,8 @@ class ModelRelay:
             )
 
         health = self._health.setdefault(
-            provider_name, ProviderHealth(provider=provider_name),
+            provider_name,
+            ProviderHealth(provider=provider_name),
         )
 
         start = time.monotonic()
@@ -240,7 +241,8 @@ class ModelRelay:
             and self._backend_health.get(
                 backend.name,
                 HealthSnapshot(backend_name=backend.name, status=RelayStatus.UNKNOWN),
-            ).status != RelayStatus.UNHEALTHY
+            ).status
+            != RelayStatus.UNHEALTHY
         ]
         if not candidates:
             return None
@@ -273,7 +275,8 @@ class ModelRelay:
 
     def _record_failure(self, provider_name: str, error: str) -> None:
         health = self._health.setdefault(
-            provider_name, ProviderHealth(provider=provider_name),
+            provider_name,
+            ProviderHealth(provider=provider_name),
         )
         health.consecutive_failures += 1
         health.error = error
@@ -281,14 +284,17 @@ class ModelRelay:
             health.status = ProviderStatus.UNHEALTHY
             logger.warning(
                 "Provider %s marked UNHEALTHY after %d failures: %s",
-                provider_name, health.consecutive_failures, error,
+                provider_name,
+                health.consecutive_failures,
+                error,
             )
         else:
             health.status = ProviderStatus.DEGRADED
 
     def _record_success(self, provider_name: str, latency_ms: float) -> None:
         health = self._health.setdefault(
-            provider_name, ProviderHealth(provider=provider_name),
+            provider_name,
+            ProviderHealth(provider=provider_name),
         )
         health.consecutive_failures = 0
         health.error = None
@@ -309,8 +315,7 @@ class ModelRelay:
         health = self._health.get(provider_name)
         if health and health.status == ProviderStatus.UNHEALTHY:
             raise ModelUnavailable(
-                f"Provider {provider_name!r} is unhealthy "
-                f"({health.consecutive_failures} consecutive failures)",
+                f"Provider {provider_name!r} is unhealthy ({health.consecutive_failures} consecutive failures)",
                 details={
                     "provider": provider_name,
                     "model": request.model,

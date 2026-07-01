@@ -19,10 +19,8 @@ from typing import Any
 
 from nexus_os.exceptions import (
     CVAVerificationFailed,
-    GovernorError,
     KAIJUDenied,
     ProofChainError,
-    TrustBelowThreshold,
 )
 
 logger = logging.getLogger(__name__)
@@ -160,6 +158,7 @@ _VALUE_CHECKERS: dict[str, Any] = {
 # KAIJU 5-Stage Authorization Gate
 # ---------------------------------------------------------------------------
 
+
 class KAIJUGate:
     """5-stage authorization barrier for agent actions.
 
@@ -194,7 +193,10 @@ class KAIJUGate:
             if result.decision in (GateDecision.DENY, GateDecision.HARD_STOP):
                 logger.warning(
                     "KAIJU stage %d DENIED agent=%s action=%s reason=%s",
-                    stage, agent_id, action, result.reason,
+                    stage,
+                    agent_id,
+                    action,
+                    result.reason,
                 )
                 if result.decision == GateDecision.HARD_STOP:
                     raise KAIJUDenied(
@@ -245,7 +247,9 @@ class KAIJUGate:
                     evidence={"pattern": pattern},
                 )
         return GateResult(
-            decision=GateDecision.APPROVE, reason="schema valid", stage=stage,
+            decision=GateDecision.APPROVE,
+            reason="schema valid",
+            stage=stage,
         )
 
     def _stage_trust_evaluation(
@@ -307,10 +311,14 @@ class KAIJUGate:
             )
         if not passed:
             return GateResult(
-                decision=GateDecision.DENY, reason=reason, stage=stage,
+                decision=GateDecision.DENY,
+                reason=reason,
+                stage=stage,
             )
         return GateResult(
-            decision=GateDecision.APPROVE, reason=reason, stage=stage,
+            decision=GateDecision.APPROVE,
+            reason=reason,
+            stage=stage,
         )
 
     def _stage_budget_check(
@@ -343,7 +351,9 @@ class KAIJUGate:
                 stage=stage,
             )
         return GateResult(
-            decision=GateDecision.APPROVE, reason="budget available", stage=stage,
+            decision=GateDecision.APPROVE,
+            reason="budget available",
+            stage=stage,
         )
 
     def _stage_sandbox_assignment(
@@ -376,9 +386,11 @@ class KAIJUGate:
 # VAP Proof Chain
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class VAPEntry:
     """Single entry in the Verifiable Action Protocol chain."""
+
     sequence: int
     timestamp: float
     agent_id: str
