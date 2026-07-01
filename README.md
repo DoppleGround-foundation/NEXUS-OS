@@ -134,7 +134,7 @@ There is no `src/`, `prisma/`, `benchmarks/`, `docs/`, `scripts/`, `bin/`, `foun
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -e ".[dev]"
-python -m pytest tests/ -q --ignore=tests/relay/test_model_relay.py
+python -m pytest tests/ -q
 ruff check nexus_os tests
 ruff format --check nexus_os tests
 ```
@@ -172,11 +172,9 @@ If editable install is unavailable in a constrained environment, install the dev
 
 Current local baseline:
 
-- `python -m pytest tests/ -q --ignore=tests/relay/test_model_relay.py` → **208 passed**
-- `ruff check nexus_os tests` → currently reports existing import and formatting issues in `nexus_os/bridge/server.py`, `nexus_os/engine/executor.py`, `nexus_os/engine/hermes.py`, `nexus_os/governor/base.py`, `nexus_os/vault/manager.py`, and `tests/test_error_handling.py`
-- `ruff format --check nexus_os tests` → currently reports 22 files would be reformatted
-
-The full test command, `python -m pytest tests/ -q`, currently hits one collection error in `tests/relay/test_model_relay.py`. That test imports `BackendConfig`, `BackendType`, `HealthSnapshot`, and `RelayStatus`, but `nexus_os.relay.model_relay` exports `ProviderStatus`, `ProviderHealth`, `RelayRequest`, `RelayResponse`, and `ModelRelay`. The relay test and relay module API are not aligned yet.
+- `python -m pytest tests/ -q` -> **228 passed**
+- `ruff check nexus_os tests` -> currently reports existing import and formatting issues in `nexus_os/bridge/server.py`, `nexus_os/engine/executor.py`, `nexus_os/engine/hermes.py`, `nexus_os/governor/base.py`, `nexus_os/vault/manager.py`, and `tests/test_error_handling.py`
+- `ruff format --check nexus_os tests` -> currently reports 22 files would be reformatted
 
 ## Contributing
 
