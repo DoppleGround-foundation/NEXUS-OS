@@ -264,7 +264,9 @@ class ModelRelay:
         failures = self._backend_failures.get(name, 0) + 1
         self._backend_failures[name] = failures
         health.error_count += 1
-        if failures >= 3:
+        backend = self._backends.get(name)
+        threshold = backend.max_retries if backend is not None else self._max_failures
+        if failures >= threshold:
             health.status = RelayStatus.UNHEALTHY
         else:
             health.status = RelayStatus.DEGRADED
