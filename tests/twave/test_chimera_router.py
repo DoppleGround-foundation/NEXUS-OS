@@ -20,9 +20,12 @@ class TestModelProfile:
 
     def test_custom(self):
         p = ModelProfile(
-            model_id="gpt-4", tier=ModelTier.CLOUD,
-            capabilities=["code", "reasoning"], max_tokens=8192,
-            black_box=True, attention_weights=False,
+            model_id="gpt-4",
+            tier=ModelTier.CLOUD,
+            capabilities=["code", "reasoning"],
+            max_tokens=8192,
+            black_box=True,
+            attention_weights=False,
         )
         assert p.capabilities == ["code", "reasoning"]
         assert p.max_tokens == 8192
@@ -40,10 +43,14 @@ class TestChimeraRouterV2:
         router = ChimeraRouterV2()
         router.register_model(ModelProfile(model_id="phi-3", tier=ModelTier.CONTROL, vram_mb=512))
         router.register_model(ModelProfile(model_id="llama-7b", tier=ModelTier.LOCAL_STD, vram_mb=4096))
-        router.register_model(ModelProfile(
-            model_id="llama-70b", tier=ModelTier.LOCAL_POWER, vram_mb=8192,
-            capabilities=["code", "reasoning"],
-        ))
+        router.register_model(
+            ModelProfile(
+                model_id="llama-70b",
+                tier=ModelTier.LOCAL_POWER,
+                vram_mb=8192,
+                capabilities=["code", "reasoning"],
+            )
+        )
         router.register_model(ModelProfile(model_id="gpt-4", tier=ModelTier.CLOUD))
         router.register_model(ModelProfile(model_id="ernie-agent", tier=ModelTier.ERNIE))
         return router

@@ -110,7 +110,7 @@ class EPRController:
         self._history.append(entropy)
         if len(self._history) < 2:
             return 0.0
-        window = self._history[-self.window_size:]
+        window = self._history[-self.window_size :]
         predicted = sum(window[:-1]) / len(window[:-1])
         residual = abs(entropy - predicted)
         return residual

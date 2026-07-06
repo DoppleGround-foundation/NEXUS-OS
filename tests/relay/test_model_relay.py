@@ -23,8 +23,12 @@ class TestBackendConfig:
 
     def test_custom_values(self):
         cfg = BackendConfig(
-            name="cloud", backend_type=BackendType.CLOUD, endpoint="https://api.example.com",
-            priority=10, max_retries=5, active=False,
+            name="cloud",
+            backend_type=BackendType.CLOUD,
+            endpoint="https://api.example.com",
+            priority=10,
+            max_retries=5,
+            active=False,
         )
         assert cfg.priority == 10
         assert cfg.active is False
@@ -47,14 +51,22 @@ class TestHealthSnapshot:
 class TestModelRelay:
     def _make_relay(self):
         relay = ModelRelay()
-        relay.register_backend(BackendConfig(
-            name="ollama", backend_type=BackendType.OLLAMA,
-            endpoint="http://localhost:11434", priority=5,
-        ))
-        relay.register_backend(BackendConfig(
-            name="chimera", backend_type=BackendType.CHIMERA,
-            endpoint="http://localhost:7353", priority=10,
-        ))
+        relay.register_backend(
+            BackendConfig(
+                name="ollama",
+                backend_type=BackendType.OLLAMA,
+                endpoint="http://localhost:11434",
+                priority=5,
+            )
+        )
+        relay.register_backend(
+            BackendConfig(
+                name="chimera",
+                backend_type=BackendType.CHIMERA,
+                endpoint="http://localhost:7353",
+                priority=10,
+            )
+        )
         return relay
 
     def test_register_backend(self):
@@ -140,18 +152,26 @@ class TestModelRelay:
 
     def test_inactive_backend_not_selected(self):
         relay = ModelRelay()
-        relay.register_backend(BackendConfig(
-            name="inactive", backend_type=BackendType.CLOUD,
-            endpoint="http://example.com", active=False,
-        ))
+        relay.register_backend(
+            BackendConfig(
+                name="inactive",
+                backend_type=BackendType.CLOUD,
+                endpoint="http://example.com",
+                active=False,
+            )
+        )
         assert relay.select_backend() is None
 
     def test_degraded_backend_still_selectable(self):
         relay = ModelRelay()
-        relay.register_backend(BackendConfig(
-            name="deg", backend_type=BackendType.OLLAMA,
-            endpoint="http://localhost", priority=1,
-        ))
+        relay.register_backend(
+            BackendConfig(
+                name="deg",
+                backend_type=BackendType.OLLAMA,
+                endpoint="http://localhost",
+                priority=1,
+            )
+        )
         health = relay.get_health("deg")
         health.status = RelayStatus.DEGRADED
         assert relay.select_backend() is not None

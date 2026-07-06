@@ -59,6 +59,7 @@ class RoutingDecision:
 @dataclass
 class QWAVEBudget:
     """Budget allocation from QWAVE allocator."""
+
     max_tokens: int
     priority: float
     allow_cloud: bool = False

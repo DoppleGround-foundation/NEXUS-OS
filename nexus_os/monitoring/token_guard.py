@@ -73,7 +73,9 @@ class TokenGuard:
             )
         logger.info(
             "TokenGuard registered %s (limit=%d, strategy=%s)",
-            agent_id, limit or self._default_limit, strategy.value,
+            agent_id,
+            limit or self._default_limit,
+            strategy.value,
         )
 
     def check_budget(
@@ -98,8 +100,7 @@ class TokenGuard:
 
         if record.tokens_used >= effective_limit:
             raise BudgetExceeded(
-                f"Agent {agent_id} has exhausted token budget: "
-                f"{record.tokens_used}/{effective_limit}",
+                f"Agent {agent_id} has exhausted token budget: {record.tokens_used}/{effective_limit}",
                 used=record.tokens_used,
                 limit=effective_limit,
                 details={
@@ -133,8 +134,7 @@ class TokenGuard:
         new_total = record.tokens_used + tokens
         if new_total > effective_limit:
             raise BudgetExceeded(
-                f"Consumption of {tokens} tokens would exceed budget for {agent_id}: "
-                f"{new_total}/{effective_limit}",
+                f"Consumption of {tokens} tokens would exceed budget for {agent_id}: {new_total}/{effective_limit}",
                 used=record.tokens_used,
                 limit=effective_limit,
                 details={
@@ -146,11 +146,13 @@ class TokenGuard:
 
         with self._lock:
             record.tokens_used = new_total
-            record.history.append({
-                "tokens": tokens,
-                "total": new_total,
-                "timestamp": time.time(),
-            })
+            record.history.append(
+                {
+                    "tokens": tokens,
+                    "total": new_total,
+                    "timestamp": time.time(),
+                }
+            )
 
         return record.tokens_used
 
@@ -172,7 +174,9 @@ class TokenGuard:
         record.strategy = strategy
         logger.info(
             "TokenGuard strategy for %s: %s -> %s",
-            agent_id, old.value, strategy.value,
+            agent_id,
+            old.value,
+            strategy.value,
         )
 
     def _get_record(self, agent_id: str) -> BudgetRecord:

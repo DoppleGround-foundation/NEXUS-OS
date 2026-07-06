@@ -105,8 +105,8 @@ class VaultManager:
                 ) from exc
         elif not self._allow_unencrypted:
             raise EncryptionRequired(
-                f"Encryption is required but no encryptor is configured. "
-                f"Set allow_unencrypted=True for plaintext storage.",
+                "Encryption is required but no encryptor is configured. "
+                "Set allow_unencrypted=True for plaintext storage.",
                 details={"track": track_enum.value, "key": key},
             )
 
@@ -124,7 +124,10 @@ class VaultManager:
             self._stores[track_enum][key] = entry
 
         logger.debug(
-            "Stored %s/%s (encrypted=%s)", track_enum.value, key, encrypted,
+            "Stored %s/%s (encrypted=%s)",
+            track_enum.value,
+            key,
+            encrypted,
         )
         return entry
 
@@ -161,8 +164,7 @@ class VaultManager:
         if entry.encrypted:
             if self._encryptor is None:
                 raise EncryptionFailed(
-                    f"Entry {track_enum.value}/{key} is encrypted but no "
-                    f"encryptor is configured for decryption",
+                    f"Entry {track_enum.value}/{key} is encrypted but no encryptor is configured for decryption",
                     details={"track": track_enum.value, "key": key},
                 )
             try:
@@ -176,9 +178,7 @@ class VaultManager:
                 ) from exc
 
             # Verify integrity
-            check_hash = hashlib.sha256(
-                value.encode() if isinstance(value, str) else value
-            ).hexdigest()
+            check_hash = hashlib.sha256(value.encode() if isinstance(value, str) else value).hexdigest()
             if check_hash != entry.integrity_hash:
                 raise StorageCorrupted(
                     f"Integrity check failed for {track_enum.value}/{key}: "
