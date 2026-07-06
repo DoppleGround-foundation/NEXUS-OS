@@ -25,6 +25,7 @@ MIN_SCORE = 0.0
 
 class CDRStage(Enum):
     """6-stage Confidence/Decay/Recovery lifecycle."""
+
     NOMINAL = "nominal"
     CAUTION = "caution"
     RESTRICTED = "restricted"
@@ -131,18 +132,24 @@ class TrustEngine:
         record.score = new_score
         record.cdr_stage = CDRStage.CRITICAL
         record.last_updated = time.time()
-        record.history.append({
-            "type": "critical_violation",
-            "reason": reason,
-            "old_score": record.score,
-            "new_score": new_score,
-            "old_stage": old_stage.value,
-            "new_stage": CDRStage.CRITICAL.value,
-            "timestamp": record.last_updated,
-        })
+        record.history.append(
+            {
+                "type": "critical_violation",
+                "reason": reason,
+                "old_score": record.score,
+                "new_score": new_score,
+                "old_stage": old_stage.value,
+                "new_stage": CDRStage.CRITICAL.value,
+                "timestamp": record.last_updated,
+            }
+        )
         logger.warning(
             "CRITICAL violation for %s: %s (score=%.1f, CDR=%s->%s)",
-            agent_id, reason, new_score, old_stage.value, CDRStage.CRITICAL.value,
+            agent_id,
+            reason,
+            new_score,
+            old_stage.value,
+            CDRStage.CRITICAL.value,
         )
         return record.score
 
@@ -227,17 +234,19 @@ class TrustEngine:
         record.score = new_score
         record.last_updated = time.time()
         self._update_cdr(record.agent_id)
-        record.history.append({
-            "type": mutation_type,
-            "reason": reason,
-            "raw_amount": raw_amount,
-            "effective_amount": effective_amount,
-            "old_score": old_score,
-            "new_score": new_score,
-            "old_stage": old_stage.value,
-            "new_stage": record.cdr_stage.value,
-            "timestamp": record.last_updated,
-        })
+        record.history.append(
+            {
+                "type": mutation_type,
+                "reason": reason,
+                "raw_amount": raw_amount,
+                "effective_amount": effective_amount,
+                "old_score": old_score,
+                "new_score": new_score,
+                "old_stage": old_stage.value,
+                "new_stage": record.cdr_stage.value,
+                "timestamp": record.last_updated,
+            }
+        )
         if old_stage != record.cdr_stage:
             logger.info(
                 "CDR transition for %s: %s -> %s (score %.1f -> %.1f)",

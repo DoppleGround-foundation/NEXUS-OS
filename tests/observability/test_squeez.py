@@ -78,15 +78,11 @@ class TestPatternExtractor:
 
 class TestCompressedBlock:
     def test_compression_ratio_single(self):
-        block = CompressedBlock(
-            pattern_hash="abc", pattern="test", count=1, first_ts=1.0, last_ts=1.0
-        )
+        block = CompressedBlock(pattern_hash="abc", pattern="test", count=1, first_ts=1.0, last_ts=1.0)
         assert block.compression_ratio == 1.0
 
     def test_compression_ratio_multiple(self):
-        block = CompressedBlock(
-            pattern_hash="abc", pattern="test", count=10, first_ts=1.0, last_ts=2.0
-        )
+        block = CompressedBlock(pattern_hash="abc", pattern="test", count=10, first_ts=1.0, last_ts=2.0)
         assert block.compression_ratio == 0.1
 
 

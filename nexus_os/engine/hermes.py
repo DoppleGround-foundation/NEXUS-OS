@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from nexus_os.exceptions import CircuitBreakerOpen, EngineError, TaskRoutingError
+from nexus_os.exceptions import CircuitBreakerOpen, TaskRoutingError
 
 logger = logging.getLogger(__name__)
 
@@ -49,30 +49,62 @@ class RouteDecision:
 
 # Domain detection patterns — ordered by specificity.
 _DOMAIN_PATTERNS: list[tuple[TaskDomain, re.Pattern[str]]] = [
-    (TaskDomain.SECURITY_AUDIT, re.compile(
-        r"\b(security|vuln|cve|exploit|injection|sanitiz|pentest|audit)\b", re.I,
-    )),
-    (TaskDomain.CODE_REVIEW, re.compile(
-        r"\b(review|pr\s+diff|pull\s+request|code\s+quality|refactor)\b", re.I,
-    )),
-    (TaskDomain.DEBUG, re.compile(
-        r"\b(debug|traceback|stack\s*trace|exception|error|fix|bug)\b", re.I,
-    )),
-    (TaskDomain.TESTING, re.compile(
-        r"\b(test|pytest|unittest|spec|coverage|assert)\b", re.I,
-    )),
-    (TaskDomain.CODE_GENERATION, re.compile(
-        r"\b(implement|create|build|write\s+code|add\s+feature|generate)\b", re.I,
-    )),
-    (TaskDomain.DATA_ANALYSIS, re.compile(
-        r"\b(analy[sz]|data|metric|statistics|chart|graph|dataset)\b", re.I,
-    )),
-    (TaskDomain.RESEARCH, re.compile(
-        r"\b(research|investigate|explore|survey|compare|benchmark)\b", re.I,
-    )),
-    (TaskDomain.DOCUMENTATION, re.compile(
-        r"\b(document|readme|docstring|comment|explain|describe)\b", re.I,
-    )),
+    (
+        TaskDomain.SECURITY_AUDIT,
+        re.compile(
+            r"\b(security|vuln|cve|exploit|injection|sanitiz|pentest|audit)\b",
+            re.I,
+        ),
+    ),
+    (
+        TaskDomain.CODE_REVIEW,
+        re.compile(
+            r"\b(review|pr\s+diff|pull\s+request|code\s+quality|refactor)\b",
+            re.I,
+        ),
+    ),
+    (
+        TaskDomain.DEBUG,
+        re.compile(
+            r"\b(debug|traceback|stack\s*trace|exception|error|fix|bug)\b",
+            re.I,
+        ),
+    ),
+    (
+        TaskDomain.TESTING,
+        re.compile(
+            r"\b(test|pytest|unittest|spec|coverage|assert)\b",
+            re.I,
+        ),
+    ),
+    (
+        TaskDomain.CODE_GENERATION,
+        re.compile(
+            r"\b(implement|create|build|write\s+code|add\s+feature|generate)\b",
+            re.I,
+        ),
+    ),
+    (
+        TaskDomain.DATA_ANALYSIS,
+        re.compile(
+            r"\b(analy[sz]|data|metric|statistics|chart|graph|dataset)\b",
+            re.I,
+        ),
+    ),
+    (
+        TaskDomain.RESEARCH,
+        re.compile(
+            r"\b(research|investigate|explore|survey|compare|benchmark)\b",
+            re.I,
+        ),
+    ),
+    (
+        TaskDomain.DOCUMENTATION,
+        re.compile(
+            r"\b(document|readme|docstring|comment|explain|describe)\b",
+            re.I,
+        ),
+    ),
 ]
 
 
@@ -104,7 +136,9 @@ class TaskClassifier:
             try:
                 domain = TaskDomain(hint)
                 return ClassificationResult(
-                    domain=domain, confidence=1.0, method="explicit_hint",
+                    domain=domain,
+                    confidence=1.0,
+                    method="explicit_hint",
                 )
             except ValueError:
                 logger.warning("Unknown domain hint %r, falling through", hint)
@@ -196,7 +230,8 @@ class HermesRouter:
                 if not self._is_circuit_open(fb):
                     logger.info(
                         "Primary model %s circuit open; falling back to %s",
-                        model, fb,
+                        model,
+                        fb,
                     )
                     return RouteDecision(
                         model=fb,
@@ -205,8 +240,7 @@ class HermesRouter:
                         fallback_chain=[model] + fallbacks,
                     )
             raise CircuitBreakerOpen(
-                f"All models for {classification.domain.value} have open circuits: "
-                f"{[model] + fallbacks}",
+                f"All models for {classification.domain.value} have open circuits: {[model] + fallbacks}",
                 details={
                     "domain": classification.domain.value,
                     "primary": model,
@@ -217,8 +251,7 @@ class HermesRouter:
         return RouteDecision(
             model=model,
             domain=classification.domain,
-            reason=f"routed via {classification.method} "
-                   f"(confidence={classification.confidence:.2f})",
+            reason=f"routed via {classification.method} (confidence={classification.confidence:.2f})",
         )
 
     def record_failure(self, model: str) -> None:
@@ -251,6 +284,7 @@ class _CircuitBreaker:
         if self._consecutive_failures < self._threshold:
             return False
         import time
+
         if time.time() - self._last_failure_time > self._reset_after:
             self._consecutive_failures = 0
             return False
@@ -258,6 +292,7 @@ class _CircuitBreaker:
 
     def record_failure(self) -> None:
         import time
+
         self._consecutive_failures += 1
         self._last_failure_time = time.time()
 

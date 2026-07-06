@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 from nexus_os.exceptions import (
@@ -116,16 +116,24 @@ class BridgeServer:
             data = json.loads(raw_payload)
         except (json.JSONDecodeError, TypeError) as exc:
             logger.error("JSON parse error: %s", exc)
-            return json.dumps(self._error_response(
-                None, PARSE_ERROR, f"Parse error: {exc}",
-            ))
+            return json.dumps(
+                self._error_response(
+                    None,
+                    PARSE_ERROR,
+                    f"Parse error: {exc}",
+                )
+            )
 
         try:
             request = self._parse_request(data)
         except RPCError as exc:
-            return json.dumps(self._error_response(
-                data.get("id"), exc.details.get("rpc_code", INVALID_REQUEST), str(exc),
-            ))
+            return json.dumps(
+                self._error_response(
+                    data.get("id"),
+                    exc.details.get("rpc_code", INVALID_REQUEST),
+                    str(exc),
+                )
+            )
 
         response = self._dispatch(request)
         return json.dumps(response.to_dict())
@@ -217,7 +225,10 @@ class BridgeServer:
             )
         except Exception as exc:
             logger.error(
-                "Unhandled error in handler %s: %s", request.method, exc, exc_info=True,
+                "Unhandled error in handler %s: %s",
+                request.method,
+                exc,
+                exc_info=True,
             )
             return RPCResponse(
                 error={"code": INTERNAL_ERROR, "message": f"Internal error: {type(exc).__name__}"},

@@ -141,11 +141,16 @@ class SqueezCompressor:
         }
 
     def serialize_blocks(self, blocks: list[CompressedBlock]) -> str:
-        return json.dumps([{
-            "hash": b.pattern_hash,
-            "pattern": b.pattern,
-            "count": b.count,
-            "first_ts": b.first_ts,
-            "last_ts": b.last_ts,
-            "vars": b.variable_fields,
-        } for b in blocks])
+        return json.dumps(
+            [
+                {
+                    "hash": b.pattern_hash,
+                    "pattern": b.pattern,
+                    "count": b.count,
+                    "first_ts": b.first_ts,
+                    "last_ts": b.last_ts,
+                    "vars": b.variable_fields,
+                }
+                for b in blocks
+            ]
+        )
