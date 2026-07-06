@@ -82,8 +82,8 @@ class HealthSnapshot:
 
 @dataclass
 class RelayRequest:
-    prompt: str
     model: str = ""
+    prompt: str = ""
     max_tokens: int = 512
     temperature: float = 0.7
     agent_id: str | None = None
